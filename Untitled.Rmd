@@ -1,0 +1,65 @@
+---
+title: "Assignment_1"
+author: "Shuo Mao 437681258"
+date: "2024-07-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Task 1:
+## Re-create the following sequences using R without the use of c() and explicit values. Hint: making use of the help files will sometimes help a lot.
+
+(a): 
+
+`(i) [1] -4 4 -4 4 -3 3 -3 2 -2 1`
+
+```{r}
+{positive_numbers = rep(4:1, 4:1);#creating numbers
+alternating_sequence = positive_numbers * rep(c(-1, 1),#using circle to re-assign their postie or negative sign to it
+                                              length.out = length(positive_numbers))}
+print(alternating_sequence)
+```
+
+
+`(ii) [1] 1 22 333 4444 55555 666666 7777777 88888888`
+
+
+```{r}
+# using function to create repeated number with no space, then adding space between each repeated numbers
+formatted_sequence <- paste(sapply(1:8, function(x) paste(rep(x, x), collapse = ""))# will generate number such as: 1, 22, 333 ....
+                            , collapse = " ") # combine those number and re-format it. 
+
+# Print the formatted sequence
+cat(formatted_sequence)
+```
+
+
+`(iii) [1] "z" "Y" "x" "W" "v" "U" "t" "S" "r" "Q" "p" "O" "n" "M" "l" "K" "j" "I" "h" "G" [21] "f" "E" "d" "C" "b" "A"`
+
+
+```{r}
+
+lowercase <- rev(letters)  # "z" to "a"
+uppercase <- rev(LETTERS)  # "Z" to "A"
+
+# Adjust for your specific alternating starting with "Y"
+combined <- c(rbind(lowercase[seq(1, 26, 2)], uppercase[seq(2, 26, 2)]))
+
+# Print the combined sequence
+print(combined)
+```
+
+
+`(iv) [1] "1^1=1" "2^2=4" "3^3=27" "4^4=256" "5^5=3125" [6] "6^6=46656" "7^7=823543" "8^8=16777216"`
+
+
+
+```{r}
+
+result <- paste(1:8, "^", 1:8, "=", 1:8  1:8)
+
+print(result)
+```
