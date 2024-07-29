@@ -1,0 +1,166 @@
+---
+title: "Assignment_1"
+author: "Shuo Mao 437681258"
+date: "2024-07-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Task 1:
+## Re-create the following sequences using R without the use of c() and explicit values. Hint: making use of the help files will sometimes help a lot.
+
+(a): 
+
+`(i) [1] -4 4 -4 4 -3 3 -3 2 -2 1`
+
+```{r}
+{positive_numbers = rep(4:1, 4:1);#creating numbers
+alternating_sequence = positive_numbers * rep(c(-1, 1),#using circle to re-assign their postie or negative sign to it
+                                              length.out = length(positive_numbers))}
+print(alternating_sequence)
+```
+
+
+`(ii) [1] 1 22 333 4444 55555 666666 7777777 88888888`
+
+
+```{r}
+# using function to create repeated number with no space, then adding space between each repeated numbers
+formatted_sequence <- paste(sapply(1:8, function(x) paste(rep(x, x), collapse = ""))# will generate number such as: 1, 22, 333 ....
+                            , collapse = " ") # combine those number and re-format it. 
+
+# Print the formatted sequence
+cat(formatted_sequence)
+```
+
+
+`(iii) [1] "z" "Y" "x" "W" "v" "U" "t" "S" "r" "Q" "p" "O" "n" "M" "l" "K" "j" "I" "h" "G" [21] "f" "E" "d" "C" "b" "A"`
+
+
+```{r}
+
+lowercase <- rev(letters)  # "z" to "a"
+uppercase <- rev(LETTERS)  # "Z" to "A"
+
+#combine uppercase and lowercase alternatively 
+combined <- c(rbind(lowercase[seq(1, 26, 2)], uppercase[seq(2, 26, 2)]))
+
+# Print the combined sequence
+print(combined)
+```
+
+
+`(iv) [1] "1^1=1" "2^2=4" "3^3=27" "4^4=256" "5^5=3125" [6] "6^6=46656" "7^7=823543" "8^8=16777216"`
+
+
+
+```{r}
+# Calculate the power results
+{exponents <- 1:8;results <- paste(exponents, "^", exponents, "=", exponents^exponents)}
+print(results)
+```
+
+
+`(v) [1] "jan1" "feb2" "mar3" "apr4" "may5" "jun6" "jul7" "aug8" "sep9" "oct10" [11] "nov11" "dec12"`
+
+
+```{r}
+# Create the vector of month abbreviations and corresponding numbers, then Combine the month abbreviations with the numbers
+{months <- tolower(month.abb);numbers <- 1:12;result <- paste(months, numbers, sep = "")}
+# Print the result
+print(result)
+```
+
+
+
+(b): find and write down six different ways to assign a variable x the value 8
+
+1: using '=' 
+```{r}
+x = 8 
+print(x)
+```
+2: using '->'
+```{r}
+8 -> x
+print(x)
+```
+
+3: using '<-'
+```{r}
+x <- 8
+print(x)
+```
+
+4: using assign function
+```{r}
+assign("x", 8)
+print(x)
+```
+
+5: using list function 
+
+```{r}
+x <<- 8
+print(x)
+```
+
+6: using c function 
+
+```{r}
+x <- c(9,8,1,4)[2]
+print(x)
+
+eval(x <- 8)
+x
+```
+## (c) We know that ex = ∑∞ i=0 xi/i!. Approximate this by A(k; x) = ∑k i=0 xi/i! for finite k. Find the value k such that A(k; 1) does not differ by exp(1) on your machine. 
+
+
+```{r}
+# Compute Euler's number
+e <- exp(1)
+
+# Initialize variables
+k <- 0
+approximation <- 0
+tolerance <- .Machine$double.eps *2 # Machine precision (default tolerance)
+
+# Loop to find the smallest k
+repeat {
+  # Update the approximation of A(k; 1)
+  approximation <- approximation + 1 / factorial(k)
+  
+  # Check if the approximation is within the tolerance
+  if (abs(approximation - e) <= tolerance) {
+    break
+  }
+  
+  # Increment k
+  k <- k + 1
+}
+
+# Output the result
+cat(sprintf("The smallest k such that A(k; 1) approximates exp(1) within machine precision is: %d\n", k))
+
+```
+
+# Task 2:
+Consider the data frame xs.nz in VGAMdata. Based on this cross-sectional
+study, use R expressions (not your eyes or my eyes) to find the values below (and show the
+values only, nothing else). Don’t use any explicit loop or anything equivalent. Ignore (delete)
+any cases with NAs in the relevant variables. Your code should be elegant and readable, etc
+
+
+### (a):The proportion of females who have had an acne problem
+```{r}
+```
+### (b):What is the age of the oldest Maori who has a cat and a dog?
+```{r}
+```
+### (c):mong current smokers, what proportion drinks alcohol each week, on average? What about among nonsmokers?
+```{r}
+```
