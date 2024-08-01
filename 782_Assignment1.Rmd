@@ -157,8 +157,7 @@ if (!requireNamespace("VGAMdata", quietly = TRUE)) {
 }
 library(VGAMdata)
 #str(xs.nz)
-View(xs.nz
-     )
+xs.nz <- na.omit(xs.nz)
 ```
 
 ### (a):The proportion of females who have had an acne problem
@@ -166,11 +165,11 @@ View(xs.nz
 ### xs.nz[(!is.na(xs.nz[, "acne"]) & xs.nz[, "sex"] == "F" & xs.nz[, "acne"] == 1 : columns name = acne, "sex" equals "F", and "acne" equals 1.
 ### counting  for totall rows satisfy conditions above nrow(~)
 ### Calculating nrow(~) / nrow(~)
-proportion_females_with_acne <- nrow(xs.nz[(!is.na(xs.nz[,"acne"]) & xs.nz[, "sex"] == "F" & xs.nz[, "acne"] == 1),])/ nrow(xs.nz["acne"])
+proportion_females_with_acne <- nrow(xs.nz[( xs.nz[, "sex"] == "F" & xs.nz[, "acne"] == 1),])/ nrow(xs.nz["acne"])
 
 t1 <- xs.nz[( xs.nz[, "sex"] == "F" & xs.nz[, "acne"] == 1),]
 table(is.na(t1[,"acne"]))
-#proportion_females_with_acne
+proportion_females_with_acne
 print(paste0("Proportion of females who have an acne problem are ",proportion_females_with_acne * 100, "%"))
 ```
 ### (b):What is the age of the oldest Maori who has a cat and a dog?
@@ -203,7 +202,22 @@ smoker_non_alocho
 a:
 
 ```{r}
-sum_series <- function(n) sum(1 / (1:(n-1) * 2:n))
+sum_series <- function(n) {
+  if (length(n) != 1 || n < 0 || !is.finite(n) || n != floor(n) )
+         stop("invalid n") # will not process either decimal number, or empty inputs
+  
+  if(n==0) return(0) # if n is 0
+  
+  # other condition 
+  sum(1 / (1:(n-1) * 2:n))
+}
+
+# extreme case tests
+#test1 <- sum_series(-99)
+#test2 <- sum_series(0)
+#test3 <- sum_series(0.3)
+#test4 <- sum_series()
+
 result_a <- sum_series(64)
 result_a
 ```
@@ -211,7 +225,13 @@ result_a
 b:
 
 ```{r}
-prod_series <- function(n) prod(sapply(1:n, function(k) 1 + (-1)^(k+1) / k))
+prod_series <- function(n) {
+  prod(
+    sapply(1:n, 
+           function(k) 
+              {1 + (-1)^(k+1) / k})
+    )
+  }
 result_b <- prod_series(64)
 result_b
 ```
