@@ -85,37 +85,34 @@ print(x)
 ```
 2: using '->'
 ```{r}
-8 -> x
-print(x)
+(8 -> x)
 ```
 
 3: using '<-'
 ```{r}
-x <- 8
-print(x)
+(x <- 8)
 ```
 
 4: using assign function
 ```{r}
-assign("x", 8)
-print(x)
+(assign("x", 8))
 ```
 
 5: using list function 
 
 ```{r}
-x <<- 8
-print(x)
+(x <<- 8)
 ```
 
-6: using c function 
+6: using eval function 
 
 ```{r}
-x <- c(9,8,1,4)[2]
-print(x)
+(eval(x <- 8))
 
-eval(x <- 8)
-x
+
+## in addition can also using c() function to assign value's 
+(x <- c(9,8,1,4)[2])
+
 ```
 ## (c) We know that ex = ∑∞ i=0 xi/i!. Approximate this by A(k; x) = ∑k i=0 xi/i! for finite k. Find the value k such that A(k; 1) does not differ by exp(1) on your machine. 
 
@@ -150,41 +147,52 @@ cat(sprintf("The smallest k such that A(k; 1) approximates exp(1) within machine
 
 # Task 2:Consider the data frame xs.nz in VGAMdata. Based on this cross-sectional study, use R expressions (not your eyes or my eyes) to find the values below (and show the values only, nothing else). Don’t use any explicit loop or anything equivalent. Ignore (delete) any cases with NAs in the relevant variables. Your code should be elegant and readable, etc
 
-```{r}
+```{r, echo=F, message=FALSE}
 # install vgamdata if not exist
-if (!requireNamespace("VGAMdata", quietly = TRUE)) {
-    install.packages("VGAMdata")
-}
+#if (!requireNamespace("VGAMdata", quietly = TRUE)) {
+#    install.packages("VGAMdata")
+#}
 library(VGAMdata)
-#str(xs.nz)
-xs.nz <- na.omit(xs.nz)
+
+
 ```
 
 ### (a):The proportion of females who have had an acne problem
 ```{r}
 ### @Desc: query index that sex columns equals "F" and acne columns equals "1"
-(acne= nrow(xs.nz[( xs.nz[, "sex"] == "F" & xs.nz[, "acne"] == 1),])/ nrow(xs.nz["acne"]) * 100)
+mean(xs.nz[!is.na(xs.nz[, "sex"]) & !is.na(xs.nz[, "acne"]) & xs.nz[, "sex"] == "F", "acne"] == 1)
+
 ```
+
+
 ### (b):What is the age of the oldest Maori who has a cat and a dog?
 
 
 ```{r}
 ### @Desc: select column name that satisfy requirement ethnicity equals Maori, dog equals 1 and cat equals 1
 (age <- max(xs.nz[(xs.nz[, "ethnicity"] == "Maori" & xs.nz[, "dog"] == 1 & xs.nz[, "cat"] == 1), "age" ], na.rm = T))
+
+
 ```
 ### (c):Among current smokers, what proportion drinks alcohol each week, on average? What about among nonsmokers?
 
 ```{r}
 
-  
-### @Desc: Query the "drinkweek" column for those who also satisfy the condition "smokenow" equals 1
-(alcohol = nrow(xs.nz[(!is.na(xs.nz[, "drinkweek"]) & xs.nz[, "smokenow"] == 1),])/nrow(xs.nz["smokenow"])*100)
+### @Desc: Selecting all data column's that have zero miss value
+non_miss_value <-xs.nz[!is.na(xs.nz[,"smokenow"]) & !is.na(xs.nz[,"drinkfreqweek"]),]
+
+### @Desc: Query the "drinkfreqweek" column for those who also satisfy the condition "smokenow" equals 1
+(smoke <- nrow(non_miss_value[non_miss_value[, "smokenow"] == 1 & non_miss_value[, "drinkfreqweek"] >= 1, ])/nrow(non_miss_value[non_miss_value[, "smokenow"] == 1, ]))
 
 
-### @Desc: Query the "drinkweek" column for those who also satisfy the condition "smokenow" equals 0
-(non_alcohol <- nrow(xs.nz[!is.na(xs.nz[,"drinkweek"]) & xs.nz[, "smokenow"] == 0,]) / nrow(xs.nz["smokenow"]) * 100 )
+### @Desc: Query the "drinkfreqweek" column for those who also satisfy the condition "smokenow" equals 0
+
+(non_smoke <- nrow(non_miss_value[non_miss_value[, "smokenow"] == 0 & non_miss_value[, "drinkfreqweek"] >= 1, ])/nrow(non_miss_value[non_miss_value[, "smokenow"] == 0, ]))
+
 
 ```
+
+
 
 # Task 3: Write some very short R code (or R functions) to compute the following series or products. You must create each term to do the addition/multiplication. If you write a function, it should have an argument n which can be assumed to have good input. Obtain the answer for n = 64 for cases (a)–(d)
 
@@ -197,7 +205,7 @@ sum_series <- function(n) {
   
   # condition that throw a warning to reminder user of range of vaild value
   if (length(n) != 1 || n < 0 || !is.finite(n) || n != floor(n)|| n==0)
-         warning("invalid inputs") # will throw an error when process decimal numbers, empty inputs, negative number and zeros 
+         warning("invalid inputs\n") # will throw an error when process decimal numbers, empty inputs, negative number and zeros 
   
   if(n==0) {
     return(0) # if n is 0
@@ -227,7 +235,7 @@ product_series <- function(n){
    ### @param: Denominator n and power (n + 1)
    ### @return result of math function (1+ (-1)^n / n-1) * (1 + (-1)^(n+1)/n)
    if (length(n) != 1 || n < 0 || !is.finite(n) || n==0)
-         warning("invalid inputs") # will throw an error when process  empty inputs, negative number and zeros 
+         warning("invalid inputs\n") # will throw an error when process  empty inputs, negative number and zeros 
   
   
   if(n ==0) return(1)
@@ -246,8 +254,8 @@ product_series <- function(n){
 #(test4 <- product_series(-99))
 #(test5 <- product_series(0.9))
 
-(result_b <- product_series(64))
-
+result_b <- product_series(64)
+print(result_b,digits=16)# need to spcify the digits length, otherwise it automatically converted into 1
 ```
 
 c:
@@ -256,22 +264,23 @@ c:
 product_series_c = function(n){
   ### @param: Denominator n
   ### @return: output of math equation (1 + 1/(n * n+2))
-  if (length(n)  <1 ||  !is.finite(n) || n==0)
-         warning("invalid inputs") # will throw an error when process  empty inputs,  and zeros 
+  if (!is.numeric(n) ||  !is.finite(n) || n==0|| n <1)
+         warning("invalid inputs\n") # will throw an error when process  empty inputs,  and zeros 
   if(n == 0) return(1)
   product = 1
   for (i in 1:n) {
-    product = product * (1 + 1 / (n* (n+2) ) )
+    product = product * (1 + 1 / (i* (i+2) ) ) # (1 + 1 / n * n) * (1 + 1 / n * n+1)
+    
   }
   product
 }
 
 # test case
 #(test1 <- product_series_c(0))
-(test2 <- product_series_c(-32))
+#(test2 <- product_series_c(-32))
 #(test3 <- product_series())
 #(test4 <- product_series(-99))
-(test5 <- product_series(0.9))
+#(test5 <- product_series_c(1))
 
 
 (result_c <- product_series_c(64))
@@ -284,17 +293,18 @@ sum_inf <- function(n, eps = 1e-8) {
   ### @param: Denominator n:  k* (k+n-1) *  (k+n)
   ### @return: result of math function: sum 1/ k* (k+n-1) *  (k+n)
   if (length(n)  <1 ||  !is.finite(n) || n==0 || n != floor(n))
-         warning("invalid inputs") # will throw an error when process  empty inputs,  and zeros 
+         warning("invalid inputs\n") # will throw an error when process  empty inputs,  and zeros 
   
   if(n!=floor(n)|| n == 0) return(NaN) # neither case will make term smaller than eps; hence will never stop
   if(n<0)return(0) # negative one of k will match with n hence, entire denominator will became to zero 
   sum_val <- 0
   k <- 1
-  term <- 1 / (k * (k + 1) * (k + 2) * (k + n))# temp holder
+  term <- 1 # temp holder
   while (term > eps) {
+    term <- 1 / prod(k:(k+n)) # 1/ k* (k+n-1) *  (k+n)
     sum_val <- sum_val + term # sum function
     k <- k + 1 # accumulating from 1 to inf
-    term <- 1 / prod(k:(k+n)) # 1/ k* (k+n-1) *  (k+n)
+    
   }
   sum_val
 }
@@ -311,12 +321,12 @@ sum_inf <- function(n, eps = 1e-8) {
 e:
 
 ```{r}
-compute_limit <- function(max_n = 100) {
+compute_limit <- function(max_n = 100,threshold = 1e8) {
   ### @param: time of iteration
   ### @return data frame that contains iteration times, value of math function and difference from exp(1)
   
   if (length(max_n)  <1 || max_n < 0 ||  !is.finite(max_n) || max_n==0 || max_n != floor(max_n))
-         stop("invalid inputs") # will throw an error when process  empty inputs,  and zeros 
+         stop("invalid inputs\n") # will throw an error when process  empty inputs,  and zeros 
   
   results <- data.frame(n = integer(), value = numeric(), diff_from_e = numeric())# create data frame contain n, value, and difference
   e <- exp(1)
@@ -325,16 +335,25 @@ compute_limit <- function(max_n = 100) {
     value <- (n^n / factorial(n))^(1/n) # calculate function 
     diff_from_e <- abs(value - e)# calculate difference, the smaller the number closer to e
     results <- rbind(results, data.frame(n = n, value = value, diff_from_e = diff_from_e))# append result to data frame for better readability
+    if (diff_from_e > threshold) { # stop when the diff_from_e is reach the floating point and turn into inf
+      break
+    }
   }
+  # plot the performance 
+  plot(results$n, results$value, type = "l", col = "blue", 
+       xlab = "n", ylab = "Value", main = "Convergence to e")
+  abline(h = e, col = "red", lty = 2)
+  legend("bottomright", legend = c("Approximation", "exp(1)"), 
+         col = c("blue", "red"), lty = c(1, 2))
+  
+  cat("Max iteration at ", n -1,"\n")# indicate the actual stop rounds
   results
 }
-# test 
-#(compute_limit(-64))
-#(compute_limit(0))
-#(compute_limit())
 
-(compute_limit(64))
+  
+(result <- compute_limit(1000))
 ```
+
 # 4： Solve the following short problems using R
 
 a) random variable has a discrete Lindley distribution if its probability mass function is
@@ -354,7 +373,7 @@ ddislind <- function(x, shape, log.arg = FALSE) {
   
   # Check if x and shape are vectors of the same length
   if (length(x) != length(shape)) {
-    stop("x and shape must be vectors of the same length")
+    warning("x and shape should be vectors of the same length")
   }
   
   # Calculate the PMF for the discrete Lindley distribution
@@ -368,10 +387,16 @@ ddislind <- function(x, shape, log.arg = FALSE) {
   }
 }
 
-x <- 0:5
+# test case
+#ddislind((0:10), c(5,10))
+
+x <- 0:10
 shape <- rep(2, length(x))  # Example with theta = 2 for all x values
 ddislind(x, shape)          # PMF values
 ddislind(x, shape, log.arg = TRUE)  # Log PMF values
+
+
+
 ```
 
 b)Use your function to give evidence that ∑∞
@@ -379,7 +404,7 @@ x=0 f (x; θ) = 1 is satisfied—a property that
 should hold for any valid PMF
 
 ```{r}
-verify_pmf_sum <- function(theta, tol = 1e-8, max_x = 1e3) {
+verify_pmf_sum <- function(theta, tol = 1e-8, max_x = 1e6) {
   ### @param: element value of theta 
   ### @return: as expect sum_pmf should return 1
   
@@ -393,9 +418,19 @@ verify_pmf_sum <- function(theta, tol = 1e-8, max_x = 1e3) {
   sum_pmf
 }
 
-theta <- 123
-sum_pmf <- verify_pmf_sum(theta)
-cat("Sum of PMF values:", sum_pmf)
+# TEST comment out because running too long
+#set.seed(782)
+#count = 0
+#repeat{
+#theta <- runif(1, 0,100) #set theta with random value 
+
+#sum_pmf <- verify_pmf_sum(theta, count)
+#cat("Sum of PMF values:", sum_pmf, "with theta value", theta, "and x vlaue" ,count, "\n") # 
+#count <- count +1
+#if (count > 1e6) break
+#}
+
+(sum_pmf <- verify_pmf_sum(theta = 12))
 ```
 
 # 5:Use R to solve the following problems 
@@ -414,7 +449,7 @@ IQs are normally distributed with mean 100 and standard deviation 15. What is th
 point for the society?
 ```{r}
 # means to find  the 3rd percentile of the normal distribution with mean 100 and standard deviation 15.
-(cutoff <- qnorm(x= 0.03, mean = 100, sd = 15))
+(cutoff <- qnorm(0.03,  100, 15))
 ```
 c)Somebody called Fred is willing to make as many attempts at getting his drivers licence
 as needed until he gets it. He estimates the probability of success of each test is 0.2. What
@@ -445,12 +480,11 @@ standard_variance <- function(x) {
 desk_calculator_variance <- function(x) {
   ### @param: sample population x
   ### @return:  variance of x
-  n <- length(x)
-  sum(x^2) / (n - 1) - sum(x)^2 / (n * (n - 1))
+  n <- length(x) # degree of freedom (-1 when use it)
+  result <- sum(x^2) / (n - 1) - sum(x)^2 / (n * (n - 1))
 }
+
 x <- c(1.5, 17, 2.5, 12, 21.3)
-
-
 standard_variance(x)
 desk_calculator_variance(x)
 
@@ -465,7 +499,8 @@ results <- sapply(1:10, function(k) {
 (results)
 ```
 
-From the result that that we can discover that in the first 6th iteration that both standard_variance and desk_calculator_variance are produce same output, however start from 7th time iteration that two variance output start to have difference after 9th time iteration that desk_calculator_variance lost the ability to output correct result, whereas the standard_variance can keep its performance.
+From the results, we observe that in the first six iterations, both the standard_variance and desk_calculator_variance produce the same output. However, starting from the seventh iteration, the two variance calculations begin to diverge. By the ninth iteration, the desk_calculator_variance starts to lose accuracy and fails to produce correct results, while the standard_variance maintains its performance consistently.
+
 
 b) Use var() on the same vectors of data. Comment on the results
 ```{r}
@@ -480,7 +515,7 @@ results <- sapply(1:10, function(k) {
 
 (results)
 ```
-Observed from the output above that demonstrated their performance that standard_variance and var() are able to generate correct output after 10th iteration whereas desk_calculator_variance loss its accuracy after 5th iteration and loss ability to handle the data set after 9th iteration. 
+Observed from the output above, it is demonstrated that both standard_variance and var() are able to generate correct results even after the 10th iteration. In contrast, desk_calculator_variance starts to lose accuracy after the 5th iteration and completely loses its ability to handle the dataset after the 9th iteration. 
 
 
 ```{r}
@@ -496,4 +531,4 @@ results <- sapply(1:20, function(k) {
 
 ```
 
-In addition, if we expend our iteration we can discover that both var() and standard_variance loss their accurate after 11st iteration, and loss ability to product output at 17th iteration.
+In addition, if we extend our iterations further, we can observe that both var() and standard_variance begin to lose accuracy after the 11th iteration and completely lose their ability to produce correct outputs by the 17th iteration.
