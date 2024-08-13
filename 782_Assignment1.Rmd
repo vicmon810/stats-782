@@ -24,6 +24,8 @@ print(alternating_sequence)
 ```
 
 
+
+
 `(ii) [1] 1 22 333 4444 55555 666666 7777777 88888888`
 
 
@@ -145,24 +147,25 @@ cat(sprintf("The smallest k such that A(k; 1) approximates exp(1) within machine
 
 ```
 
+first I compute the e, then initialized the variables, using repeat loop to calculate the smallest k, but initial tolerance was to small that the calculation takes forever then so I use a relatively small number to replace original tolerance to make the calculation faster.
+
 # Task 2:Consider the data frame xs.nz in VGAMdata. Based on this cross-sectional study, use R expressions (not your eyes or my eyes) to find the values below (and show the values only, nothing else). Don’t use any explicit loop or anything equivalent. Ignore (delete) any cases with NAs in the relevant variables. Your code should be elegant and readable, etc
 
-```{r, echo=F, message=FALSE}
+```{r, echo=F, message=FALSE,warning=FALSE}
 # install vgamdata if not exist
 #if (!requireNamespace("VGAMdata", quietly = TRUE)) {
 #    install.packages("VGAMdata")
 #}
 library(VGAMdata)
-
-
 ```
 
 ### (a):The proportion of females who have had an acne problem
 ```{r}
 ### @Desc: query index that sex columns equals "F" and acne columns equals "1"
 mean(xs.nz[!is.na(xs.nz[, "sex"]) & !is.na(xs.nz[, "acne"]) & xs.nz[, "sex"] == "F", "acne"] == 1)
-
 ```
+This output indicates the proportion of females who had an acne problem which from the result it is approximately  0.082
+
 
 
 ### (b):What is the age of the oldest Maori who has a cat and a dog?
@@ -171,9 +174,9 @@ mean(xs.nz[!is.na(xs.nz[, "sex"]) & !is.na(xs.nz[, "acne"]) & xs.nz[, "sex"] == 
 ```{r}
 ### @Desc: select column name that satisfy requirement ethnicity equals Maori, dog equals 1 and cat equals 1
 (age <- max(xs.nz[(xs.nz[, "ethnicity"] == "Maori" & xs.nz[, "dog"] == 1 & xs.nz[, "cat"] == 1), "age" ], na.rm = T))
-
-
 ```
+
+As 
 ### (c):Among current smokers, what proportion drinks alcohol each week, on average? What about among nonsmokers?
 
 ```{r}
@@ -215,15 +218,6 @@ sum_series <- function(n) {
   sum(1 / (1:(n-1) * 2:n))
 }
 
-# extreme case tests
-#(test1 <- sum_series(-99))
-#(test2 <- sum_series(0))
-#(test3 <- sum_series(0.3))
-#(test4 <- sum_series())
-
-# valid inputs test
-#(test5 <- sum_series(12))
-#(test6 <- sum_series(32))
 (result_a <- sum_series(64))
 
 ```
@@ -247,12 +241,7 @@ product_series <- function(n){
   
   product
 }
-# test case
-#(test1 <- product_series(0))
-#(test2 <- product_series(2))
-#(test3 <- product_series())
-#(test4 <- product_series(-99))
-#(test5 <- product_series(0.9))
+
 
 result_b <- product_series(64)
 print(result_b,digits=16)# need to spcify the digits length, otherwise it automatically converted into 1
@@ -275,12 +264,6 @@ product_series_c = function(n){
   product
 }
 
-# test case
-#(test1 <- product_series_c(0))
-#(test2 <- product_series_c(-32))
-#(test3 <- product_series())
-#(test4 <- product_series(-99))
-#(test5 <- product_series_c(1))
 
 
 (result_c <- product_series_c(64))
@@ -308,11 +291,8 @@ sum_inf <- function(n, eps = 1e-8) {
   }
   sum_val
 }
-# test case
-#(test1 <- sum_inf(99))
-#(test2 <- sum_inf(0.2))
-#(test3 <- sum_inf(-32))
-#(test4 <- sum_inf(0))
+
+
 
 (result_d <- sum_inf(64))
 
@@ -321,7 +301,7 @@ sum_inf <- function(n, eps = 1e-8) {
 e:
 
 ```{r}
-compute_limit <- function(max_n = 100,threshold = 1e8) {
+compute_limit <- function(max_n = 100,threshold = 1e8, tol = 1e-8) {
   ### @param: time of iteration
   ### @return data frame that contains iteration times, value of math function and difference from exp(1)
   
@@ -335,12 +315,12 @@ compute_limit <- function(max_n = 100,threshold = 1e8) {
     value <- (n^n / factorial(n))^(1/n) # calculate function 
     diff_from_e <- abs(value - e)# calculate difference, the smaller the number closer to e
     results <- rbind(results, data.frame(n = n, value = value, diff_from_e = diff_from_e))# append result to data frame for better readability
-    if (diff_from_e > threshold) { # stop when the diff_from_e is reach the floating point and turn into inf
+    if (diff_from_e > threshold || diff_from_e<tol) { # stop when the diff_from_e is reach the floating point and turn into inf
       break
     }
   }
   # plot the performance 
-  plot(results$n, results$value, type = "l", col = "blue", 
+  plot(log(results$n), log(results$value), type = "l", col = "blue", 
        xlab = "n", ylab = "Value", main = "Convergence to e")
   abline(h = e, col = "red", lty = 2)
   legend("bottomright", legend = c("Approximation", "exp(1)"), 
@@ -349,10 +329,13 @@ compute_limit <- function(max_n = 100,threshold = 1e8) {
   cat("Max iteration at ", n -1,"\n")# indicate the actual stop rounds
   results
 }
+abline(n , value, data= results, col=2)
 
   
 (result <- compute_limit(1000))
 ```
+
+this function is specifically to calculate the maximum number of iteration time that its result approach to exp(1), stop if the difference is smaller than the tolerance point or calculation are reach to floating point. 
 
 # 4： Solve the following short problems using R
 
@@ -394,10 +377,13 @@ x <- 0:10
 shape <- rep(2, length(x))  # Example with theta = 2 for all x values
 ddislind(x, shape)          # PMF values
 ddislind(x, shape, log.arg = TRUE)  # Log PMF values
-
-
-
 ```
+
+Calculate the probability mass function (PMF) of the discrete Lindley distribution for a vector of integer values and a corresponding shape parameter vector, with an option to return the logarithm of the PMF. Key inputs: 
+ - x:A vector of integer values at which the PMF needs to be evaluated.
+ - shape: A vector of the same length as x containing the parameter θ.
+ - log.arg: A logical argument that determines whether to return the logarithm of the PMF (log(f)).
+ 
 
 b)Use your function to give evidence that ∑∞
 x=0 f (x; θ) = 1 is satisfied—a property that
@@ -418,46 +404,41 @@ verify_pmf_sum <- function(theta, tol = 1e-8, max_x = 1e6) {
   sum_pmf
 }
 
-# TEST comment out because running too long
-#set.seed(782)
-#count = 0
-#repeat{
-#theta <- runif(1, 0,100) #set theta with random value 
-
-#sum_pmf <- verify_pmf_sum(theta, count)
-#cat("Sum of PMF values:", sum_pmf, "with theta value", theta, "and x vlaue" ,count, "\n") # 
-#count <- count +1
-#if (count > 1e6) break
-#}
 
 (sum_pmf <- verify_pmf_sum(theta = 12))
 ```
 
+As predicted, the output result of the probability mass function (PMF) should approach one as x increases, and theta has no influence on this function.
+
 # 5:Use R to solve the following problems 
 
-a)If 2 ‘large’ earthquakes occur on average each year at a particular city, what is the prob-
-ability at least 8 occur during a 5 year period?
+### a)If 2 ‘large’ earthquakes occur on average each year at a particular city, what is the probability at least 8 occur during a 5 year period?
+
 ```{r}
 # λ for the 5-year period = 2 time earthquakes * 5 years
 # x for probability of having 7 or fewer earthquakes
 (prob_earthquakes <- 1 - ppois(7, lambda = 2 * 5))
 ```
 
-b) new organization is proposed, called ASNEM, whose sole criterion is that members must
-have an intelligence quotient (IQ) in the bottom 3% of the general population. Suppose
-IQs are normally distributed with mean 100 and standard deviation 15. What is the cutoff
-point for the society?
+ppois = Poisson Distribution, is a specific function for probability 
+
+### b) new organization is proposed, called ASNEM, whose sole criterion is that members must have an intelligence quotient (IQ) in the bottom 3% of the general population. Suppose IQs are normally distributed with mean 100 and standard deviation 15. What is the cutoff point for the society?
+
 ```{r}
 # means to find  the 3rd percentile of the normal distribution with mean 100 and standard deviation 15.
 (cutoff <- qnorm(0.03,  100, 15))
 ```
-c)Somebody called Fred is willing to make as many attempts at getting his drivers licence
-as needed until he gets it. He estimates the probability of success of each test is 0.2. What
-is the probability of getting his drivers licence within 5 attempts?
+
+qnorm = basic normal distribution function, whereas x = 0.03, mean = 100, and deviation = 15
+
+
+### c)Somebody called Fred is willing to make as many attempts at getting his drivers licence as needed until he gets it. He estimates the probability of success of each test is 0.2. What is the probability of getting his drivers licence within 5 attempts?
 ```{r}
 #using geometric distribution for modeling the number of trials needed to get the first success, using 4 is because pgeom start form 0
 (prob_license <- pgeom(4, prob = 0.2))
 ```
+
+The geometric distribution models the number of trials needed to achieve the first success, where each trial has a fixed probability of success. in this case, with a success probability of 0.2, the probability of achieving the first success within 5th trial is described by this distribution.
 
 # 6
 

@@ -1,0 +1,58 @@
+---
+title: "Assignment_2"
+author: "Shuo Mao 437681258"
+date: "2024-08-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=F, message=FALSE,warning=FALSE}
+# install vgamdata if not exist
+if (!requireNamespace("VGAMdata", quietly = TRUE)) {
+    install.packages("VGAMdata")
+}
+library(VGAMdata)
+```
+
+
+# Consider xs.nz in VGAMdata. Write (elegant) code to produce the following output
+
+## a)
+
+```{r}
+
+(depre_tabel <- with(xs.nz ,table(depressed, useNA= "ifany")))
+```
+
+## b)
+
+```{r}
+
+
+
+# Calculate the total number of observations
+# Convert the counts to percentages
+dog_table_percent <- (with(xs.nz,table(cat, dog, useNA = "always")) / sum(with(xs.nz,table(cat, dog, useNA = "always")), na.rm = TRUE)) * 100
+print(dog_table_percent, digits = 2)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
