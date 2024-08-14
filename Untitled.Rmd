@@ -30,29 +30,90 @@ library(VGAMdata)
 ## b)
 
 ```{r}
-
-
-
 # Calculate the total number of observations
 # Convert the counts to percentages
 dog_table_percent <- (with(xs.nz,table(cat, dog, useNA = "always")) / sum(with(xs.nz,table(cat, dog, useNA = "always")), na.rm = TRUE)) * 100
 print(dog_table_percent, digits = 2)
 
 ```
+## c) 
+
+```{r}
+(smoker <- with( xs.nz[xs.nz$sex == "M", ], table(sex,smokenow, useNA = "ifany")))
+```
 
 
+# 2
+
+## a): enerate a large matrix on your device. If possible, try a 1, 000, 000 × 10 but if that is too much then a 100, 000 × 10 should be okay. Each element should be a standard normal random variate—and make your solution reproducible. Can you find out how large your matrix is in megabytes?
+
+```{r}
+set.seed(782) 
+large_matrix = matrix(rnorm(1000000,10),nrow = 1000000, ncol = 10)#Create large matrix
+max_size <- object.size(large_matrix)
+size_megabyte <- max_size/ (1024^2)# Convert the size from bytes to megabytes (1 MB = 1024 * 1024 bytes)
+```
+
+## b) Time how long it takes to compute the row sums by using rowSums(). But do this about 10 times so that it’s not too fast for a meaningful comparison
 
 
+```{r}
+time_row <- function(matrix){
+  system.time(
+    for (i in 1:10) {
+      rowSums(matrix)
+    }
+  )
+}
+
+(time <- time_row(large_matrix))
+```
 
 
+## c) Repeat (b) but use apply() instead. Comment
+
+```{r}
+time_row_apply <- function(matrix){
+  system.time(
+    for (i in 1:10) {
+      apply(matrix, 1, sum)
+    }
+  )
+}
+(time_apply <- time_row_apply(large_matrix))
+```
 
 
+In the comparison that we can discover the function of _apply()_ is not as efficiency  as function _rowSums()_, In this particular casc that _rowSums()_ uses 0.223 seconds which is less than 1 s second whereas _apply()_ uses 18.554 second which is almost 19 time higher than _rowSums()_.
 
 
+## d) Write a small efficient function that receives a data matrix. It then computes the row sums and column sums and grand total, which are augmented to the original matrix as the last column and last row. The grant total should be placed in the bottom RHS corner. The new information should be labelled. Apply your function on a toy example to show it works.
+
+```{r}
+total_sum <- function(matrix){
+  
+  #step 1 calculate individual sum
+  row_sum <- rowSums(matrix)# sum of rows
+  col_sum <- colSums(matrix)# sum of cols
+  grand_suml <- sum(row_sum)#  grant total
+  
+  #step 2 append new value to the original matrix
+  combin_mat <- cbind(matrix, row_sum)
+  row_col_sum = c(col_sum, grand_suml)
+  combin_mat <- rbind(combin_mat, row_col_sum)
+  
+  
+}
+
+set.seed(782)
+toy_matrix <- matrix(rnorm(12), nrow = 3, ncol = 4)
+(total_sum(toy_matrix))
+# Test case
+#toy_matrix2 <- matrix(rnorm(8), nrow = 4, ncol = 4)
+#(total_sum(toy_matrix2))
+```
 
 
+```{r}
 
-
-
-
-
+```
