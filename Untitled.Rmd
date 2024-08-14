@@ -61,7 +61,7 @@ size_megabyte <- max_size/ (1024^2)# Convert the size from bytes to megabytes (1
 time_row <- function(matrix){
   system.time(
     for (i in 1:10) {
-      rowSums(matrix)
+      rowSums(matrix)# 
     }
   )
 }
@@ -76,7 +76,7 @@ time_row <- function(matrix){
 time_row_apply <- function(matrix){
   system.time(
     for (i in 1:10) {
-      apply(matrix, 1, sum)
+      apply(matrix, 1, sum)# using apply funciont, 1 repserding row, sum mean sum all vuale in row 
     }
   )
 }
@@ -91,6 +91,9 @@ In the comparison that we can discover the function of _apply()_ is not as effic
 
 ```{r}
 total_sum <- function(matrix){
+  ### @Param: processing matrix
+  ### @Return: combined matrix with row sums, columns sums and grant sum 
+  ### @Desc: append new row and columns reprehending sum of each row/ columsn, in the bottom of right corner is grant total
   
   #step 1 calculate individual sum
   row_sum <- rowSums(matrix)# sum of rows
@@ -106,14 +109,56 @@ total_sum <- function(matrix){
 }
 
 set.seed(782)
-toy_matrix <- matrix(rnorm(12), nrow = 3, ncol = 4)
+toy_matrix <- matrix(rnorm(12), nrow = 3, ncol = 4) # create matrix fill with random numbers
 (total_sum(toy_matrix))
 # Test case
 #toy_matrix2 <- matrix(rnorm(8), nrow = 4, ncol = 4)
 #(total_sum(toy_matrix2))
 ```
+In this function there are two aim steps, first step is to have row, column and grant sum, then append each value accordingly
+
+# 3
+
+## a): A statistician needs to compute A B y in R, where A and B are general order-n square large matrices and y is a general n-vector. Which one, if any, is better? Why? Give an example to demonstrate this on your computer
 
 
 ```{r}
+#step 1: set up vector A,B and y
+set.seed(782)
+n <- 1000
+A <- matrix(rnorm(n * n), n, n)
+B <- matrix(rnorm(n * n), n, n)
+y <- rnorm(n)
+# step 2: counting each operation time(for meaningful comparison will run it 10 time to avoid counting time too small)
+system.time(for(i in 1:10) {z1 <- A %*% B %*% y}) # performs the multiplication from left to right
+system.time(for(i in 1:10) {z2 <- A %*% (B %*% y)})# multiply B and y then A
+system.time(for(i in 1:10) {z3 <- (A %*% B) %*% y})# same as z1.
+```
+In this scenario, z2 is the fastest because it first multiplies matrix B by vector y, resulting in another vector. Multiplying a matrix by a vector is much faster and less computationally intensive than multiplying two matrices. In contrast, both z1 and z3 first multiply the matrices A and B, which is an expensive operation in R due to the large size of the matrices. Afterward, they multiply the resulting matrix by the vector y, which takes additional time.
+
+By starting with the multiplication of B and y, z2 avoids the need to create a large intermediate matrix, making the overall computation more efficient and faster.
+
+
+# b) Let D be a diagonal matrix. Work out how to compute DX efficiently, where X is n × p such as a linear model matrix. Explain your algorithm well in English. Demonstrate your fast solution over the naive solution with a simple but convincing example.
+
+
+```{r}
+# diagonal matrix 
+D = diag(2, 600)
+n = 600
+p = 600
+X = matrix(runif(p), p,n)
+dim(D)
+dim(X)
+naive_multiply <- function(D, X) { #expect to be slow, coz it is matrix * matrix
+  return(D %*% X)
+}
+
+effic_multiply <- function(D,X){
+  sweep(X, 1, colSums(D), "*")
+}
+
+system.time(for(i in 1:10) effic_multiply(D,X))
+system.time(for(i in 1:10) naive_multiply(D,X))
 
 ```
