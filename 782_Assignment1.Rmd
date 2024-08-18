@@ -323,13 +323,14 @@ compute_limit <- function(max_n = 100,threshold = 1e8, tol = 1e-8) {
   plot(log(results$n), log(results$value), type = "l", col = "blue", 
        xlab = "n", ylab = "Value", main = "Convergence to e")
   abline(h = e, col = "red", lty = 2)
+ # abline(results$n , value, data= results, col=2)
   legend("bottomright", legend = c("Approximation", "exp(1)"), 
          col = c("blue", "red"), lty = c(1, 2))
   
   cat("Max iteration at ", n -1,"\n")# indicate the actual stop rounds
   results
 }
-abline(n , value, data= results, col=2)
+
 
   
 (result <- compute_limit(1000))

@@ -1,0 +1,368 @@
+---
+title: "Assignment_2"
+author: "Shuo Mao 437681258"
+date: "2024-08-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=F, message=FALSE,warning=FALSE}
+F = FALSE
+T = TRUE
+tol = 1e9
+# install vgamdata if not exist
+if (!requireNamespace("VGAMdata", quietly = TRUE)) {
+    install.packages("VGAMdata")
+}
+library(VGAMdata)
+```
+
+
+# Consider xs.nz in VGAMdata. Write (elegant) code to produce the following output
+
+## a)
+
+```{r}
+
+(depre_tabel <- with(xs.nz ,table(depressed, useNA= "ifany")))
+```
+
+## b)
+
+```{r}
+# Calculate the total number of observations
+# Convert the counts to percentages
+dog_table_percent <- (with(xs.nz,table(cat, dog, useNA = "always")) / sum(with(xs.nz,table(cat, dog, useNA = "always")), na.rm = TRUE)) * 100
+print(dog_table_percent, digits = 2)
+
+```
+## c) 
+
+```{r}
+(smoker <- with( xs.nz[xs.nz$sex == "M", ], table(sex,smokenow, useNA = "ifany")))
+```
+
+
+# 2
+
+## a): enerate a large matrix on your device. If possible, try a 1, 000, 000 × 10 but if that is too much then a 100, 000 × 10 should be okay. Each element should be a standard normal random variate—and make your solution reproducible. Can you find out how large your matrix is in megabytes?
+
+```{r}
+set.seed(782) 
+large_matrix = matrix(rnorm(1000000,10),nrow = 1000000, ncol = 10)#Create large matrix
+max_size <- object.size(large_matrix)
+size_megabyte <- max_size/ (1024^2)# Convert the size from bytes to megabytes (1 MB = 1024 * 1024 bytes)
+```
+
+## b) Time how long it takes to compute the row sums by using rowSums(). But do this about 10 times so that it’s not too fast for a meaningful comparison
+
+
+```{r}
+time_row <- function(matrix){
+  system.time(
+    for (i in 1:10) {
+      rowSums(matrix)# 
+    }
+  )
+}
+
+(time <- time_row(large_matrix))
+```
+
+
+## c) Repeat (b) but use apply() instead. Comment
+
+```{r}
+time_row_apply <- function(matrix){
+  system.time(
+    for (i in 1:10) {
+      apply(matrix, 1, sum)# using apply funciont, 1 repserding row, sum mean sum all vuale in row 
+    }
+  )
+}
+(time_apply <- time_row_apply(large_matrix))
+```
+
+
+In the comparison that we can discover the function of _apply()_ is not as efficiency  as function _rowSums()_, In this particular casc that _rowSums()_ uses 0.223 seconds which is less than 1 s second whereas _apply()_ uses 18.554 second which is almost 19 time higher than _rowSums()_.
+
+
+## d) Write a small efficient function that receives a data matrix. It then computes the row sums and column sums and grand total, which are augmented to the original matrix as the last column and last row. The grant total should be placed in the bottom RHS corner. The new information should be labelled. Apply your function on a toy example to show it works.
+
+```{r}
+total_sum <- function(matrix){
+  ### @Param: processing matrix
+  ### @Return: combined matrix with row sums, columns sums and grant sum 
+  ### @Desc: append new row and columns reprehending sum of each row/ columsn, in the bottom of right corner is grant total
+  
+  #step 1 calculate individual sum
+  row_sum <- rowSums(matrix)# sum of rows
+  col_sum <- colSums(matrix)# sum of cols
+  grand_suml <- sum(row_sum)#  grant total
+  
+  #step 2 append new value to the original matrix
+  combin_mat <- cbind(matrix, row_sum)
+  row_col_sum = c(col_sum, grand_suml)
+  combin_mat <- rbind(combin_mat, row_col_sum)
+  
+  
+}
+
+set.seed(782)
+toy_matrix <- matrix(rnorm(12), nrow = 3, ncol = 4) # create matrix fill with random numbers
+(total_sum(toy_matrix))
+# Test case
+#toy_matrix2 <- matrix(rnorm(8), nrow = 4, ncol = 4)
+#(total_sum(toy_matrix2))
+```
+In this function there are two aim steps, first step is to have row, column and grant sum, then append each value accordingly
+
+# 3
+
+## a): A statistician needs to compute A B y in R, where A and B are general order-n square large matrices and y is a general n-vector. Which one, if any, is better? Why? Give an example to demonstrate this on your computer
+
+
+```{r}
+#step 1: set up vector A,B and y
+set.seed(782)
+n <- 1000
+A <- matrix(rnorm(n * n), n, n)
+B <- matrix(rnorm(n * n), n, n)
+y <- rnorm(n)
+# step 2: counting each operation time(for meaningful comparison will run it 10 time to avoid counting time too small)
+system.time(for(i in 1:10) {z1 <- A %*% B %*% y}) # performs the multiplication from left to right
+system.time(for(i in 1:10) {z2 <- A %*% (B %*% y)})# multiply B and y then A
+system.time(for(i in 1:10) {z3 <- (A %*% B) %*% y})# same as z1.
+```
+In this scenario, z2 is the fastest because it first multiplies matrix B by vector y, resulting in another vector. Multiplying a matrix by a vector is much faster and less computationally intensive than multiplying two matrices. In contrast, both z1 and z3 first multiply the matrices A and B, which is an expensive operation in R due to the large size of the matrices. Afterward, they multiply the resulting matrix by the vector y, which takes additional time.
+
+By starting with the multiplication of B and y, z2 avoids the need to create a large intermediate matrix, making the overall computation more efficient and faster.
+
+
+# b) Let D be a diagonal matrix. Work out how to compute DX efficiently, where X is n × p such as a linear model matrix. Explain your algorithm well in English. Demonstrate your fast solution over the naive solution with a simple but convincing example.
+
+
+```{r}
+# diagonal matrix 
+D = diag(12, 232)
+n = 2223
+p = 232
+
+X = matrix(1:p, p,n)
+
+
+naive_multiply <- function(D, X) { #expect to be slow, coz it is matrix * matrix
+  (D %*% X)
+}
+
+effic_multiply <- function(D,X){
+  sweep(X, 1, colSums(D), "*")
+}
+
+
+
+system.time(for(i in 1:100) effic_multiply(D,X))
+system.time(for(i in 1:100) naive_multiply(D,X))
+
+```
+
+The reason of naive_multiply function running slow is because R does not efficiently processing calculation of matrix, where as effic_multiply sweep which it scales each row of matrix X by the corresponding element in the vector colSums(D). The sweep function applies a specified operation (in this case, multiplication *) across a specified margin (1 for rows) of an array (matrix X). Therefore R can fast process calculation of vectors. In summary, the main reason effic_multiply is way faster the nnaive_multiply is R can not efficiently deal matrix, instead it can process vectro fast.
+
+# 4. 
+
+## a)Write short R functions based on each definition to return such a matrix, given an argu- ment n. Print out the matrix when n = 4. 
+```{r}
+
+symmetric_matrix <- function(n){
+  ### @param: 
+  matrix(nrow = n,ncol = n, data =  sapply(1:n, function(i){# equal to java code : for(i in n.length())
+    sapply(1:n, function(j){ # equal to java code: for(j in i.length)
+      min(i,j)/max(i,j)
+    })
+   })
+  );
+}
+
+
+# Function based on the second definition
+symmetric_matrix_2 <- function(n) {
+  outer(1:n, 1:n, FUN = Vectorize(
+      function(i, j) {
+        min(i,j)/max(i,j)
+      })
+    )
+}
+
+
+
+(symmetric_matrix(4))
+(symmetric_matrix_2(4))
+
+
+```
+### Is any method preferred? Why or why not?
+```{r}
+n = 782
+system.time(symmetric_matrix(n))
+system.time(symmetric_matrix_2(n))
+```
+In theory outer should performance better when deal with large data set, 
+  
+### b) Give some evidence that the inverse of the matrices constructed in (a) are tridiagonal with negative elements in the lower and upper bands. But don’t offer a mathematical proof!
+
+```{r}
+
+is_tridiagonal <- function(mat) {
+  
+  ### The main purpose of this function are compare input with standard tridiagonal matrix, if it satisifites the requirement then it's a tridiagonal otherwise false.
+  ### In addition, as we know the input is inverse from last question, therefore it defalut should be symmetric
+  
+  # Check if the matrix is square
+  if (!is.matrix(mat) || nrow(mat) != ncol(mat)) {
+    return(FALSE)
+  }
+  
+  n <- nrow(mat)# length of row numbers
+  
+  # Loop through the matrix and check for non-zero elements outside the tridiagonal
+  for (i in 1:n) { 
+    for (j in 1:n) { #neast loop 
+      if (abs(i - j) > 1 && mat[i, j] != 0) {
+        return(FALSE)  # Non-zero element found outside tridiagonal
+      }
+    }
+  }
+  
+  
+  
+  TRUE  # No non-zero elements outside tridiagonal found
+}
+
+(inv_matrix <- is_tridiagonal(solve(symmetric_matrix(4))))
+```
+
+As the function returned, the inverse matrix dose not satificafied the reqiurements of tridiagonal, there for it is not a tridiagonal matrix.
+
+# 5
+
+### a) It has an argument n that returns the symmetric n × n matrix as follows. It is tridiagonal with values p1/2, p2/2, . . . , p(n − 1)/2 on each band. The diagonal elements are all 0s. Run your function with n = 5
+
+```{r}
+# Function to create the tridiagonal matrix
+tridiag_matrix <- function(n) {
+  
+  if(!is.numeric(n) || length(n) != 1 || n <= 0){
+    stop("Matrix dimension n must be a positive integer.")
+  } 
+    
+  diag_vals <- sqrt(1:(n-1) / 2)
+  matrix <- diag(0, n)
+  diag(matrix[-1, -n]) <- diag_vals
+  diag(matrix[-n, -1]) <- diag_vals
+  matrix
+}
+
+# Run the function with n = 5
+tridiag_matrix(5)
+
+```
+
+### b) It has an argument A for a matrix, and returns A with every column that comprises all 0s deleted. A matrix should always be returned. Run your function as follows.
+
+```{r}
+# Function to remove columns with all zeros
+cols0 <- function(A) {
+  A[, colSums(A != 0) > 0, drop = FALSE]
+}
+
+# Example matrix
+m <- matrix(1:16, nrow = 2)
+m[, c(2, 4)] <- 0
+cols0(m)
+
+
+```
+
+
+
+
+
+
+
+# 6
+
+### a)Write your own function that uses base R only to convert a single nonnegative integer n into base 2. For example, 92 = 1001 and 102 = 1010. The latter should return c(1, 0, 1, 0). Or you may include leading zeros such as c(0,..., 0, 1, 0, 1, 0). Your function must only use %% and %/% to do the computation. Don’t use other functions such as intToBits(), log2(), sprintf() or any external packages.
+##### Some notes:
+– Recursion is permissible, else maybe a for loop.
+
+– Your function ought to handle any value less than 230, say. You can preallocate a vector of a certain size to store your answer—having leading 0s is fine.
+
+– Comment your code well. It should be very easily understood.
+
+– Marks will be awarded for explaining your algorithm in English, as well as for style
+(or deducted for a lack thereof). See (c).
+
+### Use your function to (separately) convert the following to base 2: 0, 11, 12345, 54321.
+
+```{r}
+# Function to convert integer to binary
+int_to_binary <- function(n) {
+  if (n == 0) return(0)
+  result <- integer(0)
+  while (n > 0) {
+    result <- c(n %% 2, result)
+    n <- n %/% 2
+  }
+  return(result)
+}
+
+# Convert specific numbers
+int_to_binary(0)
+int_to_binary(2)
+int_to_binary(11)
+int_to_binary(12345)
+int_to_binary(54321)
+
+
+```
+
+
+### b)Now write another function which has an argument accepting a vector. It calls your previous function in order to return, e.g., the following which are for the integers 0 to 8 in binary:That is, there are no leading 0s for the largest value, and nchar() would return the same value for each element. Of course, your second function should work for any vector (not just 0:8) and return a character vector. Apply your function to c(0:8, myStudentIDnumber)
+
+```{r}
+
+# Function to convert a vector of integers to binary
+vec_to_binary <- function(vec) {
+  sapply(vec, function(x) paste(int_to_binary(x), collapse = ""))
+}
+
+# Convert 0:8 to binary
+numbers <- c(0:8, 437681258)
+vec_to_binary(numbers)
+
+```
+
+### c)Repeat (a) for any specified base such as base 3. That is, modify your function in (a) to easily work for any other base such as 3 or 4, etc. Of course, if (a) is done well then only minor changes are needed. Then do the conversions to base 3. Don’t repeat (b) for base 3.
+
+```{r}
+# Function to convert integer to any base
+int_to_base <- function(n, base = 2) {
+  if (n == 0) return(0)
+  result <- integer(0)
+  while (n > 0) {
+    result <- c(n %% base, result)
+    n <- n %/% base
+  }
+  return(result)
+}
+
+# Convert specific numbers to base 3
+int_to_base(12345, 3)
+int_to_base(54321, 3)
+
+
+```
+
