@@ -53,9 +53,12 @@ print(dog_table_percent, digits = 2)
 ```{r}
 set.seed(782) 
 large_matrix = matrix(rnorm(1000000,10),nrow = 1000000, ncol = 10)#Create large matrix
-max_size <- object.size(large_matrix)
-size_megabyte <- max_size/ (1024^2)# Convert the size from bytes to megabytes (1 MB = 1024 * 1024 bytes)
+max_size <- object.size(large_matrix)#use object.size to find matrix size in bytes
+size_megabyte <- max_size/ (1024^2) # Convert the size from bytes to megabytes (1 MB = 1024 * 1024 bytes)
+cat("matrix size is",paste0(size_megabyte), "megabytes",collapse="")
 ```
+
+In this question, the hardest part is to realize the unit transfer in data storage is 1024 not 1000.
 
 ## b) Time how long it takes to compute the row sums by using rowSums(). But do this about 10 times so that it’s not too fast for a meaningful comparison
 
@@ -72,6 +75,7 @@ time_row <- function(matrix){
 (time <- time_row(large_matrix))
 ```
 
+By using rowSum both user time and elapsed time are short which indicates the code are running efficiently.
 
 ## c) Repeat (b) but use apply() instead. Comment
 
@@ -87,32 +91,34 @@ time_row_apply <- function(matrix){
 ```
 
 
-In the comparison that we can discover the function of _apply()_ is not as efficiency  as function _rowSums()_, In this particular casc that _rowSums()_ uses 0.223 seconds which is less than 1 s second whereas _apply()_ uses 18.554 second which is almost 19 time higher than _rowSums()_.
-
+In our comparison, we found that the rowSums() function is significantly more efficient than the apply() function for calculating row sums. Specifically, rowSums() took around 0.223 seconds to complete, which is well under one second, while apply() took approximately 20 seconds. This stark difference indicates that apply() is much less efficient than rowSums() for this type of operation.
 
 ## d) Write a small efficient function that receives a data matrix. It then computes the row sums and column sums and grand total, which are augmented to the original matrix as the last column and last row. The grant total should be placed in the bottom RHS corner. The new information should be labelled. Apply your function on a toy example to show it works.
 
 ```{r}
-total_sum <- function(matrix){
+total_sum <- function(matrix, is_na = T){ # by default, this function will trade NA as 0, can spicify by define 'is_na = FALSE'
   ### @Param: processing matrix
   ### @Return: combined matrix with row sums, columns sums and grant sum 
   ### @Desc: append new row and columns reprehending sum of each row/ columsn, in the bottom of right corner is grant total
   
   #step 1 calculate individual sum
-  row_sum <- rowSums(matrix)# sum of rows
-  col_sum <- colSums(matrix)# sum of cols
+  row_sum <- rowSums(matrix, na.rm = is_na)# sum of rows, trade NA as 0 when it appear in a matrix
+  col_sum <- colSums(matrix, na.rm = is_na)# sum of cols, trade NA as 0 when it appear in a matrix
   grand_suml <- sum(row_sum)#  grant total
   
   #step 2 append new value to the original matrix
-  combin_mat <- cbind(matrix, row_sum)
-  row_col_sum = c(col_sum, grand_suml)
+  combin_mat <- cbind(matrix, row_sum) # combine each row with its sum
+  row_col_sum = c(col_sum, grand_suml) # repeating same step 
   combin_mat <- rbind(combin_mat, row_col_sum)
   
   
 }
 
+
 set.seed(782)
 toy_matrix <- matrix(rnorm(12), nrow = 3, ncol = 4) # create matrix fill with random numbers
+# toy_matrix[1,1] = NA
+# toy_matrix[2,3] = NA
 (total_sum(toy_matrix))
 # Test case
 #toy_matrix2 <- matrix(rnorm(8), nrow = 4, ncol = 4)
@@ -137,9 +143,9 @@ system.time(for(i in 1:10) {z1 <- A %*% B %*% y}) # performs the multiplication 
 system.time(for(i in 1:10) {z2 <- A %*% (B %*% y)})# multiply B and y then A
 system.time(for(i in 1:10) {z3 <- (A %*% B) %*% y})# same as z1.
 ```
-In this scenario, z2 is the fastest because it first multiplies matrix B by vector y, resulting in another vector. Multiplying a matrix by a vector is much faster and less computationally intensive than multiplying two matrices. In contrast, both z1 and z3 first multiply the matrices A and B, which is an expensive operation in R due to the large size of the matrices. Afterward, they multiply the resulting matrix by the vector y, which takes additional time.
+In this scenario, z2 is the fastest approach because it first multiplies matrix B by vector y, resulting in a new vector. Multiplying a matrix by a vector is considerably faster and less computationally intensive than multiplying two matrices. On the other hand, both z1 and z3 begin by multiplying matrices A and B, which is a costly operation in R, especially given the large size of the matrices. Following this, they multiply the resulting matrix by the vector y, adding to the computational time.
 
-By starting with the multiplication of B and y, z2 avoids the need to create a large intermediate matrix, making the overall computation more efficient and faster.
+By initially multiplying B and y, z2 avoids creating a large intermediate matrix, leading to a more efficient and quicker overall computation.
 
 
 # b) Let D be a diagonal matrix. Work out how to compute DX efficiently, where X is n × p such as a linear model matrix. Explain your algorithm well in English. Demonstrate your fast solution over the naive solution with a simple but convincing example.
@@ -152,14 +158,14 @@ n = 2223
 p = 232
 
 X = matrix(1:p, p,n)
-
+lm <- 
 
 naive_multiply <- function(D, X) { #expect to be slow, coz it is matrix * matrix
   (D %*% X)
 }
 
 effic_multiply <- function(D,X){
-  sweep(X, 1, colSums(D), "*")
+  diag(D)%*%X
 }
 
 
@@ -168,37 +174,25 @@ system.time(for(i in 1:100) effic_multiply(D,X))
 system.time(for(i in 1:100) naive_multiply(D,X))
 
 ```
-
-The reason of naive_multiply function running slow is because R does not efficiently processing calculation of matrix, where as effic_multiply sweep which it scales each row of matrix X by the corresponding element in the vector colSums(D). The sweep function applies a specified operation (in this case, multiplication *) across a specified margin (1 for rows) of an array (matrix X). Therefore R can fast process calculation of vectors. In summary, the main reason effic_multiply is way faster the nnaive_multiply is R can not efficiently deal matrix, instead it can process vectro fast.
+The naive_multiply function runs slowly because R does not efficiently handle matrix calculations. In contrast, the effic_multiply function uses the sweep function, which scales each row of matrix X by the corresponding element in the vector colSums(D). The sweep function efficiently applies the specified operation (in this case, multiplication) across a specified margin (1 for rows) of an array (matrix X). This allows R to process vector operations much faster. In summary, the main reason effic_multiply is significantly faster than naive_multiply is that R is not optimized for matrix operations, but it excels at processing vectors.
 
 # 4. 
 
 ## a)Write short R functions based on each definition to return such a matrix, given an argu- ment n. Print out the matrix when n = 4. 
 ```{r}
-
-symmetric_matrix <- function(n){
-  ### @param: 
-  matrix(nrow = n,ncol = n, data =  sapply(1:n, function(i){# equal to java code : for(i in n.length())
-    sapply(1:n, function(j){ # equal to java code: for(j in i.length)
-      min(i,j)/max(i,j)
-    })
-   })
-  );
+symmetric_matrix_1 <- function(n){
+  outer(1:n, 1:n, function(i,j) pmin(i,j)/ pmax(i,j))
 }
-
 
 # Function based on the second definition
 symmetric_matrix_2 <- function(n) {
-  outer(1:n, 1:n, FUN = Vectorize(
-      function(i, j) {
-        min(i,j)/max(i,j)
-      })
-    )
+  outer(1:n, 1:n, function(i,j){ 
+    ifelse(j >= i,  i/j, j/i)
+    });
 }
 
 
-
-(symmetric_matrix(4))
+(symmetric_matrix_1(4))
 (symmetric_matrix_2(4))
 
 
@@ -206,10 +200,17 @@ symmetric_matrix_2 <- function(n) {
 ### Is any method preferred? Why or why not?
 ```{r}
 n = 782
-system.time(symmetric_matrix(n))
-system.time(symmetric_matrix_2(n))
+# case 1
+system.time(symmetric_matrix_1(n))# sapply function expect to slow 
+system.time(symmetric_matrix_2(n))# outer function should expect efficient 
+
+#case 2
+system.time(for (i in 1:10)symmetric_matrix_1(n) ) # run multiple time for comparison
+system.time(for (i in 1:10)symmetric_matrix_2(n) )
+
 ```
-In theory outer should performance better when deal with large data set, 
+
+The output suggests that the second method is slightly faster than the first. This difference in speed might be due to the fact that the min/max function requires less computation time compared to the division operation _(/)_. However base on its performance, if we look for high efficient than using second method is better.
   
 ### b) Give some evidence that the inverse of the matrices constructed in (a) are tridiagonal with negative elements in the lower and upper bands. But don’t offer a mathematical proof!
 
@@ -224,27 +225,25 @@ is_tridiagonal <- function(mat) {
   if (!is.matrix(mat) || nrow(mat) != ncol(mat)) {
     return(FALSE)
   }
-  
   n <- nrow(mat)# length of row numbers
-  
+  tols = 1e-13
   # Loop through the matrix and check for non-zero elements outside the tridiagonal
   for (i in 1:n) { 
     for (j in 1:n) { #nest loop 
-      if (abs(i - j) > 1 && mat[i, j] != 0) {
+      if (abs(i - j) > 1 && mat[i, j] > tols) {# compare value with tolerance, if it smaller then tol should be consider as 0.
         return(FALSE)  # Non-zero element found outside tridiagonal
       }
     }
   }
-  
-  
-  
   TRUE  # No non-zero elements outside tridiagonal found
 }
 
-(inv_matrix <- is_tridiagonal(solve(symmetric_matrix(4))))
+(inv_matrix <- is_tridiagonal(solve(symmetric_matrix_1(4))))
 ```
 
-As the function returned, the inverse matrix dose not satificafied the reqiurements of tridiagonal, there for it is not a tridiagonal matrix.
+The resulting inverse matrix meets the criteria for being tridiagonal, as the non-zero elements are confined to the main diagonal, the diagonals immediately above and below it. Although some elements are extremely small due to floating-point precision, they can be effectively treated as zeros, confirming that the matrix is indeed tridiagonal.
+
+
 
 # 5
 
@@ -267,7 +266,7 @@ tridiag_matrix <- function(n) {
 
 # Run the function with n = 5
 tridiag_matrix(5)
-
+#is_tridiagonal(tridiag_matrix(5))
 ```
 
 ### b) It has an argument A for a matrix, and returns A with every column that comprises all 0s deleted. A matrix should always be returned. Run your function as follows.
@@ -275,15 +274,14 @@ tridiag_matrix(5)
 ```{r}
 # Function to remove columns with all zeros
 cols0 <- function(A) {
-  A[, colSums(A != 0) > 0] #return 
+  if(!is.matrix(A)) stop("invalid input")
+  A[, colSums(abs(A) != 0) > 0]
+  
 }
 
-# Example matrix
 m <- matrix(1:16, nrow = 2)
 m[, c(2, 4)] <- 0
 cols0(m)
-
-
 ```
 
 
@@ -308,40 +306,31 @@ cols0(m)
 ### Use your function to (separately) convert the following to base 2: 0, 11, 12345, 54321.
 
 ```{r}
-int_to_binary <- function(n) {
+int_to_binary <- function(n, max_bits = 100) {
   
-  if(!is.numeric(n)){
-    stop("Input should be a Integer")
-  }
+   if (length(n) != 1 || n < 0 || !is.finite(n) )
+         warning("invalid inputs\n") # will throw an error when process  empty inputs, negative number and zeros 
   
-  is_neg <- F # default negtive detector 
-  # handle the case n is negative number
-  if (n < 0) { 
-    n = abs(n) 
-    is_neg = T
-  }
+  
+  
   # Handle the case where n is 0 directly
-  if (n == 0) return(c(0))
+  if (n == 0) return(c(0));
   
   # Preallocate a vector to store binary digits
-  max_bits <- 30 # Since the value of n is less than 2^30
-  result <- integer(max_bits)
-  index <- max_bits
+  result <- integer(max_bits);
+  index <- max_bits;# since n will smaller than 2^100
   
   # Loop to compute binary representation
   while (n > 0) {
-    result[index] <- n %% 2  # Store remainder (0 or 1)
-    n <- n %/% 2             # Update n to the quotient of n / 2
-    index <- index - 1       # Move to the next position in the result vector
+    result[index] <- n %% 2 ; # Store remainder (0 or 1)
+    n <- n %/% 2;             # Update n to the quotient of n / 2
+    index <- index - 1;       # Move to the next position in the result vector
   }
   
   # Remove leading zeros from the result
-  result <- result[(index + 1):max_bits]
+  result <- result[(index + 1):max_bits];
   
-  # append a "-" sign when dealing with negative number
-  if(is_neg) {
-     result <- c("-", result)
-  }
+  
   result
 }
 
@@ -351,8 +340,11 @@ int_to_binary(0)
 int_to_binary(11)    
 int_to_binary(12345)
 int_to_binary(54321)
-int_to_binary(-87)  
+int_to_binary(437681258)
 ```
+
+This function converts a non-negative integer into its binary representation by repeatedly dividing the number by 2 and storing the remainders as binary digits. It handles edge cases like zero and invalid inputs, and efficiently removes leading zeros before returning the result. The function mirrors the manual process of binary conversion, ensuring accurate and clear output
+
 
 
 ### b)Now write another function which has an argument accepting a vector. It calls your previous function in order to return, e.g., the following which are for the integers 0 to 8 in binary:That is, there are no leading 0s for the largest value, and nchar() would return the same value for each element. Of course, your second function should work for any vector (not just 0:8) and return a character vector. Apply your function to c(0:8, myStudentIDnumber)
@@ -361,23 +353,33 @@ int_to_binary(-87)
 
 # Function to convert a vector of integers to binary
 vec_to_binary <- function(vec) {
-  sapply(vec, function(x) paste(int_to_binary(x), collapse = ""));
+  
+  bin_vec <- lapply(vec, function(x) 
+    {
+     str <- paste(int_to_binary(x), collapse = "") 
+    })
+  
+  max_length <- max(nchar(bin_vec))
+  
+  padded_bin_vec <- sapply(bin_vec, function(bin_str) {
+    paste0(strrep("0", max_length - nchar(bin_str))  ,bin_str )
+  })
+  padded_bin_vec
 }
 
+
 # test case 1: Convert 0:8 to binary
-t1 <- c(0:8);
+t1 <- c(0:8,437681258);
 vec_to_binary(t1);
 
-# test case 2: convert 0:8 and my id to binary
-t2 <- c(t1,  437681258);
-vec_to_binary(t2);
 
-# test case 3: covert 0 to  my id number
-t3 <- c(0: 437); 
-vec_to_binary(t3);
-
+# t2 <- c(1:78)
+# vec_to_binary(t2)
 
 ```
+
+This function will read the binary number as string, then using strrep() to fill out miss digits until they reach equal length.
+
 
 ### c)Repeat (a) for any specified base such as base 3. That is, modify your function in (a) to easily work for any other base such as 3 or 4, etc. Of course, if (a) is done well then only minor changes are needed. Then do the conversions to base 3. Don’t repeat (b) for base 3.
 
@@ -385,40 +387,44 @@ vec_to_binary(t3);
 
 
 int_to_base <- function(n, base = 2) {
-  if(!is.numeric(n)){
-    stop("Input should be a Integer")
+  if(base == 1){
+    stop("base can not  be 1")
   }
   
-  is_neg <- F # default negtive detector 
-  # handle the case n is negative number
-  if (n < 0) { 
-    n = abs(n) 
-    is_neg = T
+  if (length(n) != 1 || n < 0 || !is.finite(n) ){
+         warning("invalid inputs\n") # will throw an error when process  empty inputs, negative number and zeros 
   }
+  
+  if(base > 35){
+    stop("base can not greater than 35 run out of repersenting numbers and letters ")
+  }
+  
+  
+  # handle the case n is negative number
+  
   # Handle the case where n is 0 directly
-  if (n == 0) return(c(0))
+  if (n == 0) return(c(0));
+  
+  digits <- c(0:9, LETTERS)
   
   # Preallocate a vector to store binary digits
-  max_bits <- 30 # Since the value of n is less than 2^30
-  result <- integer(max_bits)
-  index <- max_bits
+  max_bits <- 30; # Since the value of n is less than 2^30
+  result <- integer(max_bits);
+  index <- max_bits;
   
   # Loop to compute binary representation
   while (n > 0) {
-    result[index] <- n %% base  # Store remainder (0 , 1 or 2)
-    n <- n %/% base             # Update n to the quotient of n / base
-    index <- index - 1       # Move to the next position in the result vector
+    result[index] <- digits[(n %% base)+1] ; # Store remainder (0 , 1 or 2)
+    n <- n %/% base ;            # Update n to the quotient of n / base
+    index <- index - 1;       # Move to the next position in the result vector
   }
   
   # Remove leading zeros from the result
-  result <- result[(index + 1):max_bits]
+  result <- result[(index + 1):max_bits];
   
-  # append a "-" sign when dealing with negative number
-  if(is_neg) {
-     result <- c("-", result)
-  }
+ 
     
-  result
+  paste0(result,collapse="");
 }
 
 
@@ -434,7 +440,7 @@ int_to_base(-54321, 3)
 int_to_base(54321, 4)
 
 int_to_base(54321, 5)
-
+int_to_base(543323233232321, 22)
 
 ```
-
+The key element in this function are digits, it contains 35 digits which can allow upto 35 digits of base, using both numbers and letters for representation than using for calculation.
