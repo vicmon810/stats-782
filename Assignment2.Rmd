@@ -219,7 +219,7 @@ is_tridiagonal <- function(mat) {
   
   ### The main purpose of this function are compare input with standard tridiagonal matrix, if it satisifites the requirement then it's a tridiagonal otherwise false.
   ### In addition, as we know the input is inverse from last question, therefore it defalut should be symmetric
-  
+  print(mat)
   # Check if the matrix is square
   if (!is.matrix(mat) || nrow(mat) != ncol(mat)) {
     return(FALSE)
@@ -229,7 +229,7 @@ is_tridiagonal <- function(mat) {
   
   # Loop through the matrix and check for non-zero elements outside the tridiagonal
   for (i in 1:n) { 
-    for (j in 1:n) { #neast loop 
+    for (j in 1:n) { #nest loop 
       if (abs(i - j) > 1 && mat[i, j] != 0) {
         return(FALSE)  # Non-zero element found outside tridiagonal
       }
@@ -253,15 +253,15 @@ As the function returned, the inverse matrix dose not satificafied the reqiureme
 ```{r}
 # Function to create the tridiagonal matrix
 tridiag_matrix <- function(n) {
-  
+  # invalid case 
   if(!is.numeric(n) || length(n) != 1 || n <= 0){
     stop("Matrix dimension n must be a positive integer.")
   } 
     
-  diag_vals <- sqrt(1:(n-1) / 2)
-  matrix <- diag(0, n)
-  diag(matrix[-1, -n]) <- diag_vals
-  diag(matrix[-n, -1]) <- diag_vals
+  diag_vals <- sqrt(1:(n-1) / 2) # sqrt(n/2)
+  matrix <- diag(0, n)# diag matrix
+  diag(matrix[-1, -n]) <- diag_vals# append value to low triangle
+  diag(matrix[-n, -1]) <- diag_vals# append value to upper triangle
   matrix
 }
 
@@ -275,7 +275,7 @@ tridiag_matrix(5)
 ```{r}
 # Function to remove columns with all zeros
 cols0 <- function(A) {
-  A[, colSums(A != 0) > 0, drop = FALSE]
+  A[, colSums(A != 0) > 0] #return 
 }
 
 # Example matrix
@@ -308,25 +308,50 @@ cols0(m)
 ### Use your function to (separately) convert the following to base 2: 0, 11, 12345, 54321.
 
 ```{r}
-# Function to convert integer to binary
 int_to_binary <- function(n) {
-  if (n == 0) return(0)
-  result <- integer(0)
-  while (n > 0) {
-    result <- c(n %% 2, result)
-    n <- n %/% 2
+  
+  if(!is.numeric(n)){
+    stop("Input should be a Integer")
   }
-  return(result)
+  
+  is_neg <- F # default negtive detector 
+  # handle the case n is negative number
+  if (n < 0) { 
+    n = abs(n) 
+    is_neg = T
+  }
+  # Handle the case where n is 0 directly
+  if (n == 0) return(c(0))
+  
+  # Preallocate a vector to store binary digits
+  max_bits <- 30 # Since the value of n is less than 2^30
+  result <- integer(max_bits)
+  index <- max_bits
+  
+  # Loop to compute binary representation
+  while (n > 0) {
+    result[index] <- n %% 2  # Store remainder (0 or 1)
+    n <- n %/% 2             # Update n to the quotient of n / 2
+    index <- index - 1       # Move to the next position in the result vector
+  }
+  
+  # Remove leading zeros from the result
+  result <- result[(index + 1):max_bits]
+  
+  # append a "-" sign when dealing with negative number
+  if(is_neg) {
+     result <- c("-", result)
+  }
+  result
 }
 
-# Convert specific numbers
-int_to_binary(0)
-int_to_binary(2)
-int_to_binary(11)
+# Convert specific numbers to binary
+
+int_to_binary(0)     
+int_to_binary(11)    
 int_to_binary(12345)
 int_to_binary(54321)
-
-
+int_to_binary(-87)  
 ```
 
 
@@ -336,32 +361,79 @@ int_to_binary(54321)
 
 # Function to convert a vector of integers to binary
 vec_to_binary <- function(vec) {
-  sapply(vec, function(x) paste(int_to_binary(x), collapse = ""))
+  sapply(vec, function(x) paste(int_to_binary(x), collapse = ""));
 }
 
-# Convert 0:8 to binary
-numbers <- c(0:8, 437681258)
-vec_to_binary(numbers)
+# test case 1: Convert 0:8 to binary
+t1 <- c(0:8);
+vec_to_binary(t1);
+
+# test case 2: convert 0:8 and my id to binary
+t2 <- c(t1,  437681258);
+vec_to_binary(t2);
+
+# test case 3: covert 0 to  my id number
+t3 <- c(0: 437); 
+vec_to_binary(t3);
+
 
 ```
 
 ### c)Repeat (a) for any specified base such as base 3. That is, modify your function in (a) to easily work for any other base such as 3 or 4, etc. Of course, if (a) is done well then only minor changes are needed. Then do the conversions to base 3. Don’t repeat (b) for base 3.
 
 ```{r}
-# Function to convert integer to any base
+
+
 int_to_base <- function(n, base = 2) {
-  if (n == 0) return(0)
-  result <- integer(0)
-  while (n > 0) {
-    result <- c(n %% base, result)
-    n <- n %/% base
+  if(!is.numeric(n)){
+    stop("Input should be a Integer")
   }
-  return(result)
+  
+  is_neg <- F # default negtive detector 
+  # handle the case n is negative number
+  if (n < 0) { 
+    n = abs(n) 
+    is_neg = T
+  }
+  # Handle the case where n is 0 directly
+  if (n == 0) return(c(0))
+  
+  # Preallocate a vector to store binary digits
+  max_bits <- 30 # Since the value of n is less than 2^30
+  result <- integer(max_bits)
+  index <- max_bits
+  
+  # Loop to compute binary representation
+  while (n > 0) {
+    result[index] <- n %% base  # Store remainder (0 , 1 or 2)
+    n <- n %/% base             # Update n to the quotient of n / base
+    index <- index - 1       # Move to the next position in the result vector
+  }
+  
+  # Remove leading zeros from the result
+  result <- result[(index + 1):max_bits]
+  
+  # append a "-" sign when dealing with negative number
+  if(is_neg) {
+     result <- c("-", result)
+  }
+    
+  result
 }
 
+
+
+
 # Convert specific numbers to base 3
+
+int_to_base(12345, 3)
 int_to_base(12345, 3)
 int_to_base(54321, 3)
+int_to_base(-54321, 3)
+# Convert specific number to base 4
+int_to_base(54321, 4)
+
+int_to_base(54321, 5)
 
 
 ```
