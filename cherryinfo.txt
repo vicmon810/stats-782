@@ -1,0 +1,20 @@
+Full-flowering dates of Japanese cherry (Prunus jamasakura) at Kyoto, Japan.
+This phenological data was acquired by following studies.
+
+Column A; A.D.
+Column B; Full-flowering date (day of year).
+Column C; Full-flowering date (calender date, e.g. 402 --> April 2).
+Column D; Source code
+ 1; Reported by Taguchi (1939), J. Marine Meteorol. Soc. (Umi to Sora), 19, 217-227
+ 2; Added by Sekiguchi (1969), Tokyo Geography Papers, 13, 175-190.
+ 3; Found and analyzed by Aono and Omoto (1994), J. Agric. Meteorol., 49, 263-272.
+ 4; Found and analyzed by Aono and Kazui (2008), Int. J. Climatol., 28, 905-914 (doi: 10.1002/joc.1594).
+ 5: Cherry phenological data, found and analyzed by Aono and Saito (2010), Int. J. Biometeorol., 54, 211-219.
+ 11; Estimated by using of wisteria phenology, found by Aono and Saito (2010)
+Column E; Names of old documents
+
+
+
+
+
+

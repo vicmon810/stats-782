@@ -1,0 +1,254 @@
+---
+title: "Assignment3"
+author: "Shuo Mao 437681258"
+date: "2024-09-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+Black = "#000000"
+Red = "#ee0303"
+Blue = "#0395ee"
+Grey = "#bfc0c0"
+BMW_blue = "#81c4ff"
+White = "#faf6f6"
+```
+
+# Q1
+
+## a) se R to plot the equation with the x- and y-axes on the same scale. Hint: use plot() and lines() only.
+```{r}
+alpha = beta = 1 + 8
+#yx^2 + a^2y - abx = 0 
+#y(x^2 + a^2) = abx
+# y = abx/(x2 + a2)
+
+f <- function (x,a = alpha, b = beta){
+  (a*b*x) / (x^2 + a^2)
+}
+x_val <- seq(-10,10, by=0.1)
+y_val <- f(x_val)
+
+# 
+draw <- function() {
+# pdf("plot_equation.pdf")
+plot.new()
+plot.window(xlim = c(-10,10), ylim = c(-10, 10))
+lines(x_val, y_val)
+axis(1, pos = 0, at = c(-10, -5, 5,10))
+axis(2,pos = 0, at=c(-10, -5, 5,10))
+title(xlab = "yx^2 + a^2y - abx = 0 ")
+grid() 
+# dev.off()
+}
+
+draw()
+```
+
+```{r, echo=FALSE}
+knitr::include_graphics("plot_equation.pdf")
+```
+
+## b)se a simple finite difference to estimate the derivative of the function at the origin. It should be accurate to at least four decimal places
+```{r}
+
+#yx^2 + a^2y - abx = 0 
+# # y = abx/(x2 + a2)
+
+# simple finite difference : f'(0) = f(x0 + h) - f(x0) / h 
+
+#assign h to a small number 
+h <- 1e-8
+
+(derivative_at_0 <- (f(0 + h) - f(0)) / h)
+
+```
+
+## c) Suppose (1) can be written in the form y = f (x)
+```{r}
+f2 <- function(x){f(x)^2}
+(integer_1 <- integrate(f2, lower=0,upper=Inf))
+
+
+(integer_2 <- integrate(f, lower=0,upper=Inf))
+```
+
+# Q2
+
+## a)
+
+```{r}
+cherry <- read.csv("kyotocherry.csv")
+cherry <- cherry[!is.na(cherry$DOY),]
+cherry$Ffdate <-paste0(month.abb[as.numeric(substr(cherry$Ffdate,1,1))] ,substr(cherry$Ffdate,2,4))
+str(cherry)
+spline_fit <- smooth.spline(cherry$AD, cherry$DOY, df=5)
+plot(cherry$AD, cherry$DOY, pch = 20, col = "pink", xlab = "Year", ylab = "Day of Year (DOY)", main = "Smoothed Cherry Blossom Bloom Dates")
+
+lines(spline_fit, col = Red, lwd = 3, type = "l")
+
+
+```
+
+
+
+
+```{r}
+
+# Function to create a fade effect
+fade <- function(colors, alpha) {
+  rgbcols <- col2rgb(colors)
+  rgb(rgbcols[1, ], rgbcols[2, ], rgbcols[3, ], alpha, max = 255)
+}
+
+# Recreate the illusion figure
+q3 <- function (){
+# pdf("optical_illusion.pdf")
+plot.new()
+plot.window(xlim = c(0,15), ylim = c(0,15), asp = 1)
+# axis(1, pos = 0, at = seq(0,10,1))
+# axis(2, pos = 0, at = seq(0,10,1))
+# plot(1, type = "n", xlim = c(0, 10), ylim = c(0, 10), axes = FALSE, xlab = "", ylab = "")
+# Add lines to recreate the illusion
+segments(0, 10, 2.5, 5, col = fade(Black, 255), lwd = 2)
+segments(2.5, 5, 5, 0, col = fade(Red, 255), lwd = 2)
+segments(3, 5, 5.5, 0, col = fade(Blue, 255), lwd = 2)
+rect(2, 0, 3.5, 10, col = fade(Grey, 255))
+
+
+segments(5, 10, 7.5, 5, col = fade(Black, 255), lwd = 2)
+segments(7.5, 5, 10, 0, col = fade(Red, 255), lwd = 2)
+segments(8, 5, 10.5, 0, col = fade(Blue, 255), lwd = 2)
+rect(7, 0, 8.5, 10, col = fade(Grey, 188))
+
+# dev.off()
+}
+
+q3()
+```
+
+# Q4
+
+```{r}
+mec <- function(radius = 5){
+  plot.new()
+  plot.window(xlim = c(0, 10),
+              ylim = c(0, 10), asp = 1)
+  # axis(1, pos = 0, at= seq(0,10, 0.5))
+  # axis(2, pos = 0, at= seq(0,10, 0.5))
+  theta <- seq(0, 2 * pi, length = 73)
+  x <-  5 + radius * cos(theta)
+  y <-  5 + radius * sin(theta)
+  polygon(x , y , border   = Black, lwd= 3)
+  
+
+#   # Second line (120 degrees)
+x2 <- c(10, cos(pi/3))
+y2 <- c(10, sin(pi/3))
+lines(x2, -y2, lwd = 2, col = "green")
+
+x_coords <- c(5, 4.5, 5, 5.5)  # 
+y_coords <- c(10, 5, 4.5, 5)  #
+polygon(x_coords, y_coords, col = Black, border = Black, lwd = 2)
+
+# Define the rotation angle (120 degrees = 2 * pi / 3 radians)
+theta <- 120 * pi / 180  # Convert degrees to radians
+
+# Define the center of the polygon (optional, otherwise assume (0, 0))
+center_x <- 5
+center_y <- 5
+
+# Subtract the center to rotate around the polygon's center
+x_shifted <- x_coords - center_x
+y_shifted <- y_coords - center_y
+
+# Apply the rotation matrix
+x_rotated <- x_shifted * cos(theta) - y_shifted * sin(theta)
+y_rotated <- x_shifted * sin(theta) + y_shifted * cos(theta)
+
+# Add the center back to the rotated coordinates
+x_rotated <- x_rotated + center_x
+y_rotated <- y_rotated + center_y
+polygon(x_rotated, y_rotated, col = Black, border = Black, lwd = 2)
+
+
+# Define the center of the polygon (optional, otherwise assume (0, 0))
+center_x <- 5
+center_y <- 5
+
+# Subtract the center to rotate around the polygon's center
+x_shifted1 <- x_rotated - center_x
+y_shifted1 <- y_rotated - center_y
+
+# Apply the rotation matrix
+x_rotated1 <- x_shifted1 * cos(theta) - y_shifted1 * sin(theta)
+y_rotated1 <- x_shifted1 * sin(theta) + y_shifted1 * cos(theta)
+
+# Add the center back to the rotated coordinates
+x_rotated1 <- x_rotated1 + center_x
+y_rotated1 <- y_rotated1 + center_y
+polygon(x_rotated1, y_rotated1, col = Black, border = Black, lwd = 2)
+}
+
+mec()
+```
+
+```{r}
+BMW <- function(radius = 3){
+  # Create a new plot
+  plot.new()
+  plot.window(xlim = c(0, 10), ylim = c(0, 10), asp = 1)
+  # axis(1, pos = 0, at = seq(0,10, 0.5))
+  # axis(2, pos = 0, at = seq(0,10, 0.5))
+  
+  # Generate theta values for the full circle
+  theta <- seq(0, 2 * pi, length = 100)
+  
+  # Calculate x and y for the full circle
+  x_full <- 5 + radius * cos(theta)
+  y_full <- 5 + radius * sin(theta)
+  
+  # Draw the outer circle with a thick border
+  polygon(x_full, y_full, border = Black, lwd = 40)
+  
+  # Define segments for different sections
+  # Top-left (blue)
+  theta_topleft <- seq(pi / 2, pi, length = 100)
+  x_topleft <- c(5, 5 + (radius*0.8) * cos(theta_topleft))
+  y_topleft <- c(5, 5 + (radius * 0.8) * sin(theta_topleft))
+  polygon(x_topleft, y_topleft, col = BMW_blue, border = Black, lwd = 2)
+  
+   # Top-right (white)
+   theta_topright <- seq(0, pi / 2, length = 100)
+   x_topright <- c(5, 5 + (radius*0.8) * cos(theta_topright))
+   y_topright <- c(5, 5 + (radius*0.8) * sin(theta_topright))
+   polygon(x_topright, y_topright, col = White, lwd = 2)
+  
+   # Bottom-left (white)
+   theta_bottomleft <- seq(pi, 3 * pi / 2, length = 100)
+   x_bottomleft <- c(5, 5 + (radius*0.8) * cos(theta_bottomleft))
+   y_bottomleft <- c(5, 5 + (radius*0.8) * sin(theta_bottomleft))
+   polygon(x_bottomleft, y_bottomleft, col = White,  lwd = 2)
+  
+   # Bottom-right (blue)
+   theta_bottomright <- seq(3 * pi / 2, 2 * pi, length = 100)
+   x_bottomright <- c(5, 5 + (radius*0.8) * cos(theta_bottomright))
+   y_bottomright <- c(5, 5 + (radius*0.8) * sin(theta_bottomright))
+   polygon(x_bottomright, y_bottomright, col = BMW_blue,  lwd = 2)
+  
+   # Draw the cross inside the circle
+   segments(1.5, 5, 8, 5, lwd = 2)   # Horizontal line
+   segments(5, 8.5, 5, 2, lwd = 2)   # Vertical line
+   text(2.5,6.8 , "B", col=White, srt=45, cex=2.3)
+   text(5,8 , "M", col=White, srt=0, cex=2.3)
+   text(7.5,6.8 , "M", col=White, srt=-45, cex=2.3)
+}
+
+# Call the function to draw the BMW logo
+BMW()
+
+```
