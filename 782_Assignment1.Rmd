@@ -514,3 +514,13 @@ results <- sapply(1:20, function(k) {
 ```
 
 In addition, if we extend our iterations further, we can observe that both var() and standard_variance begin to lose accuracy after the 11th iteration and completely lose their ability to produce correct outputs by the 17th iteration.
+
+
+
+
+Y = (125
+,     18,
+      20, 
+      34)
+      
+      Y = (125, 18, 20, 34)

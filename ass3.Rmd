@@ -11,39 +11,44 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 Black = "#000000"
-Red = "#ee0303"
+Red = "#5a0909"
 Blue = "#0395ee"
 Grey = "#bfc0c0"
 BMW_blue = "#81c4ff"
 White = "#faf6f6"
+Pink = "#e87878"
 ```
 
 # Q1
 
 ## a) se R to plot the equation with the x- and y-axes on the same scale. Hint: use plot() and lines() only.
 ```{r}
-alpha = beta = 1 + 8
+alpha = beta = 9
 #yx^2 + a^2y - abx = 0 
 #y(x^2 + a^2) = abx
 # y = abx/(x2 + a2)
-
+#a function define the equation
 f <- function (x,a = alpha, b = beta){
   (a*b*x) / (x^2 + a^2)
 }
-x_val <- seq(-10,10, by=0.1)
+x_val <- seq(-30,30, by=0.1)
 y_val <- f(x_val)
 
-# 
+# a R function aim to draw the equation 
 draw <- function() {
-# pdf("plot_equation.pdf")
-plot.new()
-plot.window(xlim = c(-10,10), ylim = c(-10, 10))
-lines(x_val, y_val)
-axis(1, pos = 0, at = c(-10, -5, 5,10))
-axis(2,pos = 0, at=c(-10, -5, 5,10))
-title(xlab = "yx^2 + a^2y - abx = 0 ")
-grid() 
-# dev.off()
+  # pdf("plot_equation.pdf")
+  plot.new()
+  # set the x range and y range from -100 to 100
+  plot.window(xlim = c(-30,30), ylim = c(-5, 5))
+  #Draw the line 
+  lines(x_val, y_val)
+  # X-axis from range -30 to 30
+  axis(1, pos = 0, at = seq(-30,30, 5))
+  # Y-axis from range -0 to 10
+  axis(2,pos = 0, at=seq(-5,5, 1))
+  title(xlab = "yx^2 + a^2y - abx = 0 ")
+  grid() 
+  # dev.off()
 }
 
 draw()
@@ -71,10 +76,19 @@ h <- 1e-8
 ## c) Suppose (1) can be written in the form y = f (x)
 ```{r}
 f2 <- function(x){f(x)^2}
-(integer_1 <- integrate(f2, lower=0,upper=Inf))
 
 
-(integer_2 <- integrate(f, lower=0,upper=Inf))
+
+# Set dx for numerical integration
+dx <- 1/10
+
+# Set a reasonable upper limit (use something smaller for practical reasons)
+up <- 1e7
+
+# Numerical summation using sum()
+x <- seq(0, up - dx, length.out = up/dx)
+(result_f2 <- sum(f2(x) * dx))  # Numerical integration of f2
+(result_f <- sum(f(x) * dx)  )  # Numerical integration of f
 ```
 
 # Q2
@@ -85,11 +99,66 @@ f2 <- function(x){f(x)^2}
 cherry <- read.csv("kyotocherry.csv")
 cherry <- cherry[!is.na(cherry$DOY),]
 cherry$Ffdate <-paste0(month.abb[as.numeric(substr(cherry$Ffdate,1,1))] ,substr(cherry$Ffdate,2,4))
-str(cherry)
+# str(cherry)
 spline_fit <- smooth.spline(cherry$AD, cherry$DOY, df=5)
-plot(cherry$AD, cherry$DOY, pch = 20, col = "pink", xlab = "Year", ylab = "Day of Year (DOY)", main = "Smoothed Cherry Blossom Bloom Dates")
 
-lines(spline_fit, col = Red, lwd = 3, type = "l")
+
+# plot(cherry$AD, cherry$DOY, pch = 20, col = "pink", xlab = "Year", main = "Smoothed Cherry Blossom Bloom Dates")
+q2 <- function(x_min, x_max, y_min, y_max, tol) {
+  plot.new()  # Create a new plot
+  
+  # Define extended x-axis and y-axis limits
+  xlim_extended <- c(x_min - tol, x_max + tol) # range year 
+  ylim_extended <- c(y_min-tol, y_max)
+  
+  # Set up the plot window with extended limits for both axes
+  plot.window(xlim = xlim_extended, ylim = ylim_extended)
+  
+  # Add x-axis and y-axis with custom ticks
+  x_ticks <- seq(800, 2000, 400)  # Year labels
+  axis(1, pos = y_min - tol, at = x_ticks, labels = x_ticks)
+  
+  # Draw a horizontal line by xlim
+  abline(h = y_min - tol, col = "black", lty = 1, lwd = 2)  # Solid line
+
+  
+  
+  y_ticks <- seq(min(cherry$DOY)-tol, max(cherry$DOY) , length.out = 3)
+  month<- c("11 \n Mar", " 31 \n Mar", "20 \n Apr")
+  axis(2, pos = x_min-tol , at = y_ticks, col=NA, labels = F)  # y-axis
+  text(x = x_min - 75, y = y_ticks, labels = month, srt = 0, xpd = TRUE)
+  
+  for (y in y_ticks[-1]) {
+    
+    abline(h = y, col = Grey, lty = 2)  # Horizontal lines (dashed, gray)
+  }
+  # Add title and x-axis label
+  #title
+  mtext("Cherry Blossom: Peak Bloom Days of the year", side=3, line = 2, adj=0, cex=1.5,font =  3)
+  #sub-title
+  mtext("Kyoto, Japan, 812 to 2021", side = 3,line=1  ,cex = 0.8, adj=0, font =2)  # Subtitle with smaller font
+  #----------#
+  par(xpd = NA)  # Allow drawing outside plot region
+  abline(h = par("usr")[3] - 8.3, col = Black, lwd = 1)
+  #source
+  mtext("Source: Osaka Perfecture University", side=1, line=1.4, adj=0, font=1.5,cex=0.6)
+  #BBC
+  # mtext("BBC",side =1, line = 1.4, adj=2)
+  
+  # Ploting actual data and fitting lines
+  points(cherry$AD, cherry$DOY, pch = 20, col = Pink)
+  lines(spline_fit, col = Red, lwd=3)
+}
+
+x_min <- min(cherry$AD)
+x_max <- max(cherry$AD)
+
+y_min <- min(cherry$DOY)
+y_max <- max(cherry$DOY)
+q2(x_min, x_max, y_min, y_max ,25)
+
+
+
 
 
 ```
